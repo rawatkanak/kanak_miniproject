@@ -12,7 +12,10 @@ on:
 jobs:
   build-and-deploy:
     runs-on: windows-latest
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,10 +33,17 @@ jobs:
       - name: Zip the application files
         run: Compress-Archive .\\* app.zip
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D60B55E52E1F4FA6A0FE9622673F1CAA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D16126F39FA046EDBDF07BE94CAADDBD }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_98E76A15997246FAA037BB5AECF5459A }}
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'prac1'
           slot-name: 'Production'
           package: '.\\app.zip'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FC8FDF3E586D4104ACA0BBD589BD0D79 }}
+          
